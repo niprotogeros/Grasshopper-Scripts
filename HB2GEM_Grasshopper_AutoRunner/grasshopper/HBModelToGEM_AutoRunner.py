@@ -211,7 +211,7 @@ def _msg(level, text):
 def _is_blank(s):
     try:
         return s is None or str(s).strip() == ""
-    except:
+    except Exception:
         return True
 
 def _find_default_python():
@@ -263,13 +263,13 @@ def _serialize_obj_to_hbjson_text(obj):
             if s.startswith("{") and s.endswith("}"):
                 json.loads(s)  # sanity check
                 return s, None
-    except:
+    except Exception:
         pass
     # 2) Plain Python dict (or dict-like)
     try:
         if hasattr(obj, "keys"):  # very generic check
             return json.dumps(obj), None
-    except:
+    except Exception:
         pass
     # 3) .NET or wrapper objects with serialization methods
     probe_methods = [
@@ -285,16 +285,16 @@ def _serialize_obj_to_hbjson_text(obj):
                 try:
                     if hasattr(res, "keys"):
                         return json.dumps(res), None
-                except:
+                except Exception:
                     pass
                 if isinstance(res, basestring):
                     s = res.strip()
                     try:
                         json.loads(s)
                         return s, None
-                    except:
+                    except Exception:
                         continue
-        except:
+        except Exception:
             pass
     return None, ("Could not serialize the provided HB model to HBJSON text. "
                   "Try feeding a Honeybee 'Dump/To JSON' into _hb_model or use _hbjson as a file path or JSON string.")
@@ -357,7 +357,7 @@ if globals().get("_export", False):
                 wait_seconds = int(timeout_val)
                 if wait_seconds <= 0:
                     wait_seconds = 300
-        except:
+        except (ValueError, TypeError):
             wait_seconds = 300
 
     hbjson_path_or_json = None
@@ -432,7 +432,7 @@ if globals().get("_export", False):
                         if not proc.WaitForExit(wait_seconds * 1000):
                             try:
                                 proc.Kill()
-                            except:
+                            except Exception:
                                 pass
                             status = "ERROR"
                             details = "Process timed out after {0} seconds. Increase 'timeout' for large models.".format(wait_seconds)
@@ -440,11 +440,11 @@ if globals().get("_export", False):
                         else:
                             try:
                                 stdout_txt = proc.StandardOutput.ReadToEnd()
-                            except:
+                            except Exception:
                                 stdout_txt = ""
                             try:
                                 stderr_txt = proc.StandardError.ReadToEnd()
-                            except:
+                            except Exception:
                                 stderr_txt = ""
                             details = (stdout_txt or "") + (("\nErrors:\n" + stderr_txt) if stderr_txt else "")
                             if proc.ExitCode != 0:
@@ -463,7 +463,7 @@ if globals().get("_export", False):
                     try:
                         if not proc.HasExited:
                             proc.Kill()
-                    except:
+                    except Exception:
                         pass
 else:
     _msg(GH_RuntimeMessageLevel.Remark, "Export flag not set. Set _export to True to perform export.")
